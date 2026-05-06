@@ -11,6 +11,10 @@ list_of_files = [
     # Config
     f"{project_name}/config/settings.py",
 
+    # Models
+    f"{project_name}/models/__init__.py",
+    f"{project_name}/models/get_model.py",
+
     # Agents
     f"{project_name}/agents/__init__.py",
     f"{project_name}/agents/planner.py",

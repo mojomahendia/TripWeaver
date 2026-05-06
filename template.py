@@ -4,7 +4,7 @@ import logging
 
 logging.basicConfig(level=logging.INFO, format='[%(asctime)s]: %(message)s:')
 
-project_name = "holiday_management"
+project_name = "trip_weaver"
 
 
 list_of_files = [

@@ -11,3 +11,8 @@ dependencies = [
     "pydentic>=0.0.1.dev3",
     "setuptools>=82.0.1",
 ]
+
+[dependency-groups]
+dev = [
+    "black>=26.3.1",
+]

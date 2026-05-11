@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-TripWeaver is a multi-agent AI travel planning application built with LangChain and OpenAI. The system uses specialized agents (planner, researcher) organized into teams (holiday_team) to collaboratively generate trip plans.
+TripWeaver is an AI travel planning application built with LangGraph and OpenAI. It uses a three-node pipeline (query parser → researcher → planner) to convert a natural language travel query into a full day-by-day itinerary. The UI is a Streamlit app.
 
 ## Setup
 
@@ -18,8 +18,6 @@ uv sync
 source .venv/bin/activate
 ```
 
-The package is installed in editable mode — run `pip install -e .` if working outside uv.
-
 A `.env` file is required at the project root with:
 ```
 OPENAI_API_KEY=your_key_here
@@ -28,11 +26,11 @@ OPENAI_API_KEY=your_key_here
 ## Running
 
 ```bash
-# Entry point (currently a stub)
-python main.py
+# Streamlit UI (primary)
+streamlit run app.py
 
-# Run the app
-python app.py
+# CLI runner
+python main.py
 ```
 
 ## Testing
@@ -43,12 +41,35 @@ python tests.py
 
 ## Architecture
 
-The `trip_weaver` Python package is the core library, structured as:
+The `trip_weaver` Python package is the core library:
 
-- **`config/settings.py`** — loads `.env` and exposes `OPENAI_API_KEY` and `MODEL_NAME` (`gpt-4o-mini`). All modules should import settings from here rather than calling `os.getenv` directly.
-- **`models/gpt_model.py`** — instantiates a shared `ChatOpenAI` client (`model_client`) via `langchain-openai` with streaming enabled. Agents should use this shared client.
-- **`agents/`** — individual agent definitions. `planner.py` and `researcher.py` are the intended agents; each should encapsulate a LangChain runnable or agent executor.
-- **`teams/holiday_team.py`** — orchestrates the planner and researcher agents into a cohesive workflow for holiday trip planning.
-- **`utils/utils.py`** — shared helper functions for agents and teams.
+```
+trip_weaver/
+├── config/settings.py          — loads .env; exposes OPENAI_API_KEY and MODEL_NAME
+├── models/gpt_model.py         — shared ChatOpenAI client (model_client); all nodes import from here
+├── prompts/
+│   ├── query_parser_prompt.py  — QUERY_PARSER_PROMPT: natural language → structured JSON
+│   ├── research_prompt.py      — RESEARCH_PROMPT: raw destination facts (no itinerary language)
+│   └── planner_prompt.py       — PLANNER_PROMPT: builds the markdown itinerary
+├── graph/
+│   ├── state.py                — TripweverState TypedDict (query, parsed_params, research, plan)
+│   ├── nodes/
+│   │   ├── query_parser.py     — node: parses query → parsed_params dict
+│   │   ├── researcher.py       — node: researches destination → research dict
+│   │   └── planner.py          — node: generates itinerary → plan string
+│   └── graph.py                — compiles StateGraph; exports `workflow`
+└── utils/utils.py              — shared helpers (currently empty)
+```
 
-`template.py` at the root is a one-time scaffolding script (not part of the runtime); it created the directory/file structure and can be ignored.
+**Graph flow:** `START → query_parser → researcher → planner → END`
+
+**State shape:**
+```python
+class TripweverState(TypedDict):
+    query: str           # raw user input
+    parsed_params: dict  # structured trip params (destination, days, budget, pace, …)
+    research: dict       # attractions, meals, transport, weather, tips
+    plan: str            # final markdown itinerary
+```
+
+`agents.ipynb` is the original prototyping notebook — kept as a reference but not imported by the package.

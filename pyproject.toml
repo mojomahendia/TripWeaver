@@ -10,6 +10,7 @@ dependencies = [
     "langgraph>=1.1.10",
     "pydentic>=0.0.1.dev3",
     "setuptools>=82.0.1",
+    "streamlit>=1.40.0",
 ]
 
 [dependency-groups]
